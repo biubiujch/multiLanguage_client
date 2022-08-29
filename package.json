@@ -9,8 +9,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@types/lodash": "^4.14.184",
     "@types/styled-components": "^5.1.26",
     "antd": "^4.22.4",
+    "axios": "^0.27.2",
+    "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.3.0",
