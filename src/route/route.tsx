@@ -3,10 +3,15 @@ import Login from "src/pages/login";
 import PageLayout from "src/components/layout/layout";
 import ProjectManage from "src/pages/projectManage";
 import UserManage from "src/pages/userManage";
+import NotFound from "src/pages/404";
 import { Route } from "react-router-dom";
 import { UserOutlined } from "@ant-design/icons";
 
 export const routes: IRoute[] = [
+  {
+    path: "/",
+    element: <Login />
+  },
   { path: "/login", element: <Login /> },
   {
     path: "/dashBord",
@@ -24,6 +29,10 @@ export const routes: IRoute[] = [
         element: <UserManage />
       }
     ]
+  },
+  {
+    path: "*",
+    element: <NotFound />
   }
 ];
 

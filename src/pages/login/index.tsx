@@ -1,13 +1,22 @@
 import { Wrap, Card } from "./index.styled";
 import { Form, Input, Checkbox, Button } from "antd";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Login() {
   const [form] = Form.useForm();
+  const [loginStatus, setLoginStatus] = useState<boolean>(false);
+  const navigate = useNavigate();
 
   const handleFinish = (value: Record<string, any>) => {
     console.log(value);
+    setLoginStatus(true);
     // jump to project
   };
+
+  useEffect(() => {
+    if (loginStatus) navigate("/dashbord", { replace: true });
+  }, [loginStatus]);
 
   return (
     <Wrap>

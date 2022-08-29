@@ -15,6 +15,9 @@ function PageLayout() {
   const redirect = useRedirect();
 
   useEffect(() => {
+    if (location.pathname == "/") {
+      redirect("/", "/dashbord/projectManage");
+    }
     routes.forEach((r) => {
       r.child && redirect(r.path, r.child[0].path);
     });
