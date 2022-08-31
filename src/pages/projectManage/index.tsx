@@ -1,17 +1,19 @@
 import { Button, Form, Input, message, Modal, Space, Table, Popconfirm } from "antd";
 import { ColumnsType } from "antd/lib/table";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRequestList } from "src/hooks/useRequestList";
 import { apis, request } from "src/utils/request";
 import { Wrap, TableWrap, TextBtn } from "./index.styled";
 
 function ProjectManage() {
   const [visible, setVisible] = useState<boolean>(false);
+  const [isCreate, setIsCreate] = useState<boolean>(true);
   const [createForm] = Form.useForm();
   const { reFectch, data } = useRequestList(apis.getAllProject);
   const dataSource = useMemo(() => {
     return data.data || [];
   }, [data]);
+  const project = useRef<Record<string, any>>({});
 
   const handleSubmit = async () => {
     const res = createForm.getFieldsValue();
@@ -20,18 +22,48 @@ function ProjectManage() {
       params: {
         ...res,
         administrator: "admin",
-        administratorID: "1",
-      },
+        administratorID: "1"
+      }
     });
     message.success("create success");
     reFectch();
     setVisible(false);
   };
+
+  const handleUpdate = async (record: Record<string, any>) => {
+    const res = createForm.getFieldsValue();
+    const { id } = project.current;
+    if (!id) {
+      message.error("update fail");
+      return;
+    }
+    await request({
+      ...apis.updateProject,
+      params: {
+        id,
+        ...res,
+      }
+    });
+    message.success("update success");
+    reFectch();
+    setVisible(false);
+  };
+
   const handleDelete = async (record: Record<string, any>) => {
     const { id } = record;
     id && (await request({ ...apis.deleteProject, params: { id } }));
     reFectch();
     message.success("delete success");
+  };
+
+  const handleEdit = async (record: Record<string, any>) => {
+    const { projectName } = record;
+    setIsCreate(false);
+    createForm.setFieldsValue({
+      projectName
+    });
+    setVisible(true);
+    project.current = record;
   };
 
   const columns: ColumnsType<any> = [
@@ -42,26 +74,31 @@ function ProjectManage() {
       key: "id",
       render: (record: Record<string, any>) => (
         <Space>
-          <Popconfirm title="删除" okText="delete" cancelText="cancel" onConfirm={() => handleDelete(record)}>
+          <Popconfirm title='删除' okText='delete' cancelText='cancel' onConfirm={() => handleDelete(record)}>
             <TextBtn>删除</TextBtn>
           </Popconfirm>
-          <TextBtn>编辑</TextBtn>
+          <TextBtn onClick={() => handleEdit(record)}>编辑</TextBtn>
         </Space>
-      ),
-    },
+      )
+    }
   ];
 
   return (
     <Wrap>
-      <Button type="primary" onClick={() => setVisible(true)}>
+      <Button type='primary' onClick={() => setVisible(true)}>
         创建项目
       </Button>
       <TableWrap>
         <Table columns={columns} dataSource={dataSource} rowKey={(record) => record.id} />
       </TableWrap>
-      <Modal title="创建项目" visible={visible} onCancel={() => setVisible(false)} onOk={handleSubmit}>
+      <Modal
+        title={isCreate ? "创建项目" : "编辑项目"}
+        visible={visible}
+        onCancel={() => setVisible(false)}
+        onOk={isCreate ? handleSubmit : handleUpdate}
+      >
         <Form form={createForm}>
-          <Form.Item label="项目名称" name="projectName">
+          <Form.Item label='项目名称' name='projectName'>
             <Input />
           </Form.Item>
         </Form>

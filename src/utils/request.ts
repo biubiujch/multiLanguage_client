@@ -28,4 +28,8 @@ export const apis: Record<string, AxiosRequestConfig<any>> = {
     url: "project/delete",
     method: "post",
   },
+  updateProject: {
+    url: "project/update",
+    method: "post",
+  }
 };
