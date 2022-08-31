@@ -1,6 +1,6 @@
-import axios from "axios";
+import axios, { AxiosRequestConfig } from "axios";
 
-const baseURL = "";
+const baseURL = "http://localhost:3000/api";
 
 export const request = axios.create({
   baseURL,
@@ -14,3 +14,18 @@ axios.interceptors.response.use(
     console.error(error);
   }
 );
+
+export const apis: Record<string, AxiosRequestConfig<any>> = {
+  createProject: {
+    url: "/project/create",
+    method: "post",
+  },
+  getAllProject: {
+    url: "project/getAll",
+    method: "get",
+  },
+  deleteProject: {
+    url: "project/delete",
+    method: "post",
+  },
+};
