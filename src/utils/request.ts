@@ -35,6 +35,10 @@ export const apis: Record<string, AxiosRequestConfig<any>> = {
     url: "project/delete",
     method: "post",
   },
+  updateProject: {
+    url: "project/update",
+    method: "post",
+  },
   login: {
     url: "administrator/login",
     method: "post",
