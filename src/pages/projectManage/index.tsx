@@ -11,7 +11,7 @@ function ProjectManage() {
   const [createForm] = Form.useForm();
   const { reFectch, data } = useRequestList(apis.getAllProject);
   const dataSource = useMemo(() => {
-    return (data as any[]) || [];
+    return Array.isArray(data) ? data : data.data || [];
   }, [data]);
   const project = useRef<Record<string, any>>({});
 
