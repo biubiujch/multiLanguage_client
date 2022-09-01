@@ -5,6 +5,8 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Wrap } from "./Layout.styled";
 import { useRedirect } from "src/hooks";
 import { routes, menuList } from "src/route/route";
+import { useSelector } from "react-redux";
+import { RootState } from "src/store";
 
 const { Header, Sider, Content } = Layout;
 
@@ -13,15 +15,20 @@ function PageLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const redirect = useRedirect();
+  const isLogin = useSelector((state: RootState) => state.administrator.isLogin);
 
   useEffect(() => {
+    if (!isLogin) {
+      navigate("/login", { replace: true });
+      return;
+    }
     if (location.pathname == "/") {
       redirect("/", "/dashbord/projectManage");
     }
     routes.forEach((r) => {
       r.child && redirect(r.path, r.child[0].path);
     });
-  }, [location]);
+  }, [location, isLogin]);
 
   return (
     <Wrap>
