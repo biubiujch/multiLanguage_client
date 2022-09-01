@@ -5,7 +5,7 @@ const administrator = JSON.parse(sessionStorage.getItem("administrator") || "nul
 
 const initialState = {
   isLogin: administrator.isLogin,
-  user: {}
+  user: (administrator.user || {}) as Record<string, any>
 }
 
 export const administratorSlice = createSlice({

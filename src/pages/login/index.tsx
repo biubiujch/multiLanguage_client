@@ -25,12 +25,12 @@ function Login() {
         }
       });
       setLoginStatus(true);
-      dispatch(login(res.data));
+      dispatch(login(res));
     } catch (e) {}
   };
 
   useEffect(() => {
-    console.log(islogin)
+    console.log(islogin);
     if (loginStatus || islogin) navigate("/dashbord", { replace: true });
   }, [loginStatus, islogin]);
 

@@ -1,7 +1,9 @@
 import { Button, Form, Input, message, Modal, Space, Table, Popconfirm } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import { useMemo, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import { useRequestList } from "src/hooks/useRequestList";
+import { RootState } from "src/store";
 import { apis, request } from "src/utils/request";
 import { Wrap, TableWrap, TextBtn } from "./index.styled";
 
@@ -14,6 +16,7 @@ function ProjectManage() {
     return Array.isArray(data) ? data : data.data || [];
   }, [data]);
   const project = useRef<Record<string, any>>({});
+  const user = useSelector((state: RootState) => state.administrator.user);
 
   const handleSubmit = async () => {
     try {
@@ -22,16 +25,15 @@ function ProjectManage() {
         ...apis.createProject,
         params: {
           ...res,
-          administrator: "admin",
-          administratorID: "1",
-        },
+          administrator: user.name,
+          administratorID: user.id
+        }
       });
       message.success("create success");
       reFectch();
       setVisible(false);
     } catch (e) {}
   };
-
   const handleUpdate = async (record: Record<string, any>) => {
     try {
       const res = createForm.getFieldsValue();
@@ -44,8 +46,8 @@ function ProjectManage() {
         ...apis.updateProject,
         params: {
           id,
-          ...res,
-        },
+          ...res
+        }
       });
       message.success("update success");
       reFectch();
@@ -66,7 +68,7 @@ function ProjectManage() {
     setIsCreate(false);
     setVisible(true);
     createForm.setFieldsValue({
-      projectName,
+      projectName
     });
   };
 
@@ -78,18 +80,18 @@ function ProjectManage() {
       key: "id",
       render: (record: Record<string, any>) => (
         <Space>
-          <Popconfirm title="删除" okText="delete" cancelText="cancel" onConfirm={() => handleDelete(record)}>
+          <Popconfirm title='删除' okText='delete' cancelText='cancel' onConfirm={() => handleDelete(record)}>
             <TextBtn>删除</TextBtn>
           </Popconfirm>
           <TextBtn onClick={() => handleEdit(record)}>编辑</TextBtn>
         </Space>
-      ),
-    },
+      )
+    }
   ];
 
   return (
     <Wrap>
-      <Button type="primary" onClick={() => setVisible(true)}>
+      <Button type='primary' onClick={() => setVisible(true)}>
         创建项目
       </Button>
       <TableWrap>
@@ -102,7 +104,7 @@ function ProjectManage() {
         onOk={isCreate ? handleSubmit : handleUpdate}
       >
         <Form form={createForm}>
-          <Form.Item label="项目名称" name="projectName">
+          <Form.Item label='项目名称' name='projectName'>
             <Input />
           </Form.Item>
         </Form>
