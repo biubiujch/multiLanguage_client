@@ -1,3 +1,4 @@
+import { message } from "antd";
 import axios, { AxiosRequestConfig } from "axios";
 
 const baseURL = "http://localhost:3000/api";
@@ -6,12 +7,18 @@ export const request = axios.create({
   baseURL,
 });
 
-axios.interceptors.response.use(
+request.interceptors.response.use(
   function (response) {
+    const { status } = response;
+    if (status === 201 || status === 202) {
+      message.error("username or password error");
+      return Promise.reject();
+    }
     return response.data;
   },
   function (error) {
-    console.error(error);
+    message.error("nextwork error");
+    return Promise.reject();
   }
 );
 
@@ -26,6 +33,10 @@ export const apis: Record<string, AxiosRequestConfig<any>> = {
   },
   deleteProject: {
     url: "project/delete",
+    method: "post",
+  },
+  login: {
+    url: "administrator/login",
     method: "post",
   },
 };

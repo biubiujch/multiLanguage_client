@@ -15,23 +15,27 @@ function ProjectManage() {
 
   const handleSubmit = async () => {
     const res = createForm.getFieldsValue();
-    await request({
-      ...apis.createProject,
-      params: {
-        ...res,
-        administrator: "admin",
-        administratorID: "1",
-      },
-    });
-    message.success("create success");
-    reFectch();
-    setVisible(false);
+    try {
+      await request({
+        ...apis.createProject,
+        params: {
+          ...res,
+          administrator: "admin",
+          administratorID: "1",
+        },
+      });
+      message.success("create success");
+      reFectch();
+      setVisible(false);
+    } catch (e) {}
   };
   const handleDelete = async (record: Record<string, any>) => {
-    const { id } = record;
-    id && (await request({ ...apis.deleteProject, params: { id } }));
-    reFectch();
-    message.success("delete success");
+    try {
+      const { id } = record;
+      id && (await request({ ...apis.deleteProject, params: { id } }));
+      reFectch();
+      message.success("delete success");
+    } catch (e) {}
   };
 
   const columns: ColumnsType<any> = [
