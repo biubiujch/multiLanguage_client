@@ -11,7 +11,7 @@ function ProjectManage() {
   const [createForm] = Form.useForm();
   const { reFectch, data } = useRequestList(apis.getAllProject);
   const dataSource = useMemo(() => {
-    return data.data || [];
+    return (data as any[]) || [];
   }, [data]);
   const project = useRef<Record<string, any>>({});
 
@@ -62,8 +62,12 @@ function ProjectManage() {
   };
   const handleEdit = (record: Record<string, any>) => {
     project.current = record;
+    const { projectName } = record;
     setIsCreate(false);
     setVisible(true);
+    createForm.setFieldsValue({
+      projectName,
+    });
   };
 
   const columns: ColumnsType<any> = [
