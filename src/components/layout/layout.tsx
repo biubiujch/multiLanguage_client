@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Wrap } from "./Layout.styled";
 import { useRedirect } from "src/hooks";
-import { routes, menuList } from "src/route/route";
+import { menuList } from "src/route/route";
 import { useSelector } from "react-redux";
 import { RootState } from "src/store";
 
@@ -20,14 +20,9 @@ function PageLayout() {
   useEffect(() => {
     if (!isLogin) {
       navigate("/login", { replace: true });
-      return;
-    }
-    if (location.pathname == "/") {
+    } else if (location.pathname == "/dashbord") {
       redirect("/", "/dashbord/projectManage");
     }
-    routes.forEach((r) => {
-      r.child && redirect(r.path, r.child[0].path);
-    });
   }, [location, isLogin]);
 
   return (

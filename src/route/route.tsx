@@ -3,14 +3,15 @@ import Login from "src/pages/login";
 import PageLayout from "src/components/layout/layout";
 import ProjectManage from "src/pages/projectManage";
 import UserManage from "src/pages/userManage";
+import ProjectDetail from "src/pages/projectManage/detail";
 import NotFound from "src/pages/404";
-import { Route } from "react-router-dom";
+import { Navigate, Route } from "react-router-dom";
 import { UserOutlined } from "@ant-design/icons";
 
 export const routes: IRoute[] = [
   {
     path: "/",
-    element: <Login />
+    element: <Navigate to='/login' replace={true} />
   },
   { path: "/login", element: <Login /> },
   {
@@ -23,11 +24,8 @@ export const routes: IRoute[] = [
         name: "项目管理",
         element: <ProjectManage />
       },
-      {
-        path: "userManage",
-        name: "用户管理",
-        element: <UserManage />
-      }
+      { path: "projectDetail", name: "项目管理", element: <ProjectDetail /> },
+      { path: "userManage", name: "用户管理", element: <UserManage /> }
     ]
   },
   {

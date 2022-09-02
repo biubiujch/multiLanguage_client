@@ -2,6 +2,7 @@ import { Button, Form, Input, message, Modal, Space, Table, Popconfirm } from "a
 import { ColumnsType } from "antd/lib/table";
 import { useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { useRequestList } from "src/hooks/useRequestList";
 import { RootState } from "src/store";
 import { apis, request } from "src/utils/request";
@@ -17,6 +18,7 @@ function ProjectManage() {
   }, [data]);
   const project = useRef<Record<string, any>>({});
   const user = useSelector((state: RootState) => state.administrator.user);
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
     try {
@@ -84,6 +86,7 @@ function ProjectManage() {
             <TextBtn>删除</TextBtn>
           </Popconfirm>
           <TextBtn onClick={() => handleEdit(record)}>编辑</TextBtn>
+          <TextBtn onClick={() => navigate(`/dashbord/projectDetail?id=${record.id}`)}>进入项目</TextBtn>
         </Space>
       )
     }
@@ -92,7 +95,7 @@ function ProjectManage() {
   return (
     <Wrap>
       <Button type='primary' onClick={() => setVisible(true)}>
-        创建项目
+        create project
       </Button>
       <TableWrap>
         <Table columns={columns} dataSource={dataSource} rowKey={(record) => record.id} />
