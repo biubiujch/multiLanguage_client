@@ -28,8 +28,8 @@ function ProjectManage() {
         params: {
           ...res,
           administrator: user.name,
-          administratorID: user.id
-        }
+          administratorID: user.id,
+        },
       });
       message.success("create success");
       reFectch();
@@ -48,8 +48,8 @@ function ProjectManage() {
         ...apis.updateProject,
         params: {
           id,
-          ...res
-        }
+          ...res,
+        },
       });
       message.success("update success");
       reFectch();
@@ -70,7 +70,7 @@ function ProjectManage() {
     setIsCreate(false);
     setVisible(true);
     createForm.setFieldsValue({
-      projectName
+      projectName,
     });
   };
 
@@ -82,19 +82,25 @@ function ProjectManage() {
       key: "id",
       render: (record: Record<string, any>) => (
         <Space>
-          <Popconfirm title='删除' okText='delete' cancelText='cancel' onConfirm={() => handleDelete(record)}>
+          <Popconfirm title="删除" okText="delete" cancelText="cancel" onConfirm={() => handleDelete(record)}>
             <TextBtn>删除</TextBtn>
           </Popconfirm>
           <TextBtn onClick={() => handleEdit(record)}>编辑</TextBtn>
           <TextBtn onClick={() => navigate(`/dashbord/projectDetail?id=${record.id}`)}>进入项目</TextBtn>
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <Wrap>
-      <Button type='primary' onClick={() => setVisible(true)}>
+      <Button
+        type="primary"
+        onClick={() => {
+          createForm.resetFields();
+          setVisible(true);
+        }}
+      >
         create project
       </Button>
       <TableWrap>
@@ -107,7 +113,7 @@ function ProjectManage() {
         onOk={isCreate ? handleSubmit : handleUpdate}
       >
         <Form form={createForm}>
-          <Form.Item label='项目名称' name='projectName'>
+          <Form.Item label="项目名称" name="projectName">
             <Input />
           </Form.Item>
         </Form>

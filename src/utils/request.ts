@@ -24,7 +24,7 @@ request.interceptors.response.use(
 
 export const apis: Record<string, AxiosRequestConfig<any>> = {
   createProject: {
-    url: "/project/create",
+    url: "project/create",
     method: "post",
   },
   getAllProject: {
