@@ -10,4 +10,9 @@ export default defineConfig({
       src: path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      "/trans/vip": "https://fanyi-api.baidu.com/api/",
+    },
+  },
 });

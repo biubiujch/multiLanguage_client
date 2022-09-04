@@ -11,10 +11,12 @@
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.5",
     "@types/lodash": "^4.14.184",
+    "@types/md5": "^2.3.2",
     "@types/styled-components": "^5.1.26",
     "antd": "^4.22.4",
     "axios": "^0.27.2",
     "lodash": "^4.17.21",
+    "md5": "^2.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.2",
