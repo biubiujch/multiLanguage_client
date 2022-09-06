@@ -5,77 +5,44 @@ import { useSearchParams } from "react-router-dom";
 import { useRequestList } from "src/hooks/useRequestList";
 import { apis, request } from "src/utils/request";
 import { translateAPI } from "src/utils/translate";
-import { Wrap, TranslateWrap } from "./detail.styled";
 import { TableWrap, TextBtn } from "./index.styled";
 
-const src2dst = [
-  {
-    to: "en",
-    from: "zh"
-  },
-  {
-    to: "zh",
-    from: "en"
-  }
+const translate = [
+  { from: "zh", to: "en" },
+  { from: "en", to: "zh" }
 ];
 
 export default function ProjectDetail() {
   const [show, setShow] = useState<boolean>(false);
-  const [originText, setOriginText] = useState<string>("");
-  const [translateText, setTranslateText] = useState<string>("");
-  const [translate, setTranslate] = useState<number>(0);
   const [params] = useSearchParams();
   const projectID = useMemo(() => params.get("id") || null, [params]);
+  const [addForm] = Form.useForm();
   const { reFectch, data } = useRequestList(apis.getAllText, { projectID });
   const dataSource = useMemo(() => {
     return Array.isArray(data) ? data : data.data || [];
   }, [data]);
-  const [addForm] = Form.useForm();
 
-  const handleAddNew = async ({ src, dst, to, from }: { src: string; dst: string; to: string; from: string }) => {
-    try {
-      await request({
-        ...apis.addText,
-        params: {
-          projectID,
-          srcText: src,
-          dstText: dst,
-          to,
-          from
-        }
-      });
-      reFectch();
-      message.success("add success");
-    } catch (e) {}
+  const openAddModal = () => {
+    addForm.resetFields();
+    setShow(!show);
   };
-  const handleTranslate = async () => {
-    if (originText.length === 0) {
-      message.warning("please input text");
-      return;
-    }
-    const { to, from } = src2dst[translate];
-    const res = await translateAPI({ q: originText, to, from });
+  const handleTranslate = async ({ q, to, from, srcID }: { q: string; to: string; from: string; srcID: string }) => {
+    const res = await translateAPI({ q, to, from });
     if (res) {
       const { trans_result } = res;
-      setTranslateText(trans_result[0]?.dst || "");
-      await handleAddNew({ src: trans_result[0]?.src || "", dst: trans_result[0]?.dst || "", to, from });
+      await request({
+        ...apis.addDstText,
+        params: {
+          to,
+          srcID,
+          content: trans_result[0]?.dst || ""
+        }
+      });
     }
-  };
-  const handleClear = () => {
-    setOriginText("");
-    setTranslateText("");
-  };
-  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    translateText.length > 0 && setTranslateText("");
-    setOriginText(event.target.value);
   };
   const handleDelete = async (record: Record<string, any>) => {
     try {
       const { id } = record;
-      if (!id) {
-        message.error("delete fail,You don't have access.");
-        return;
-      }
       await request({
         ...apis.deleteText,
         params: {
@@ -85,6 +52,26 @@ export default function ProjectDetail() {
       reFectch();
     } catch (e) {}
   };
+  const handleAdd = async () => {
+    try {
+      const { trans, content, key } = await addForm.validateFields();
+      const { from, to } = translate[trans || 0];
+      const res: any = await request({
+        ...apis.addText,
+        params: {
+          key,
+          content,
+          from,
+          projectID
+        }
+      });
+      const { id } = res;
+      await handleTranslate({ q: content, srcID: id, from, to });
+      reFectch();
+      message.success("add success");
+      setShow(false);
+    } catch (e) {}
+  };
 
   const columns: ColumnsType<any> = [
     {
@@ -92,55 +79,54 @@ export default function ProjectDetail() {
       dataIndex: "key"
     },
     {
-      title: "原始内容",
-      dataIndex: "srcText"
+      title: "source",
+      dataIndex: "content"
     },
     {
-      title: "翻译内容",
-      dataIndex: "dstText"
+      title: "destination",
+      dataIndex: "dstConent"
     },
     {
-      title: "操作",
+      title: "action",
       render: (record: Record<string, any>) => (
         <Space>
           <Popconfirm title='delete?' onConfirm={() => handleDelete(record)} okText='del' cancelText='cancel'>
-            <TextBtn>删除</TextBtn>
+            <TextBtn>delete</TextBtn>
           </Popconfirm>
-
-          <TextBtn>修改</TextBtn>
+          <TextBtn>update</TextBtn>
         </Space>
       )
     }
   ];
 
   return (
-    <Wrap>
+    <div>
       <Space>
-        <Button type='primary' onClick={() => setShow(!show)}>
+        <Button type='primary' onClick={openAddModal}>
           create new
         </Button>
-        <Select
-          defaultValue={0}
-          onChange={(e) => setTranslate(e)}
-          options={[
-            { label: "中文-en", value: 0 },
-            { label: "en-中文", value: 1 }
-          ]}
-        />
       </Space>
       <TableWrap>
         <Table rowKey={(record) => record.id} dataSource={dataSource} columns={columns} />
       </TableWrap>
-      <Modal title='Add text' visible={show} onCancel={() => setShow(false)} onOk={() => {}}>
-        <Form form={addForm}>
-          <Form.Item label='key' name='key'>
+      <Modal title='Add text' visible={show} onCancel={() => setShow(false)} onOk={handleAdd}>
+        <Form form={addForm} labelCol={{ span: 4 }}>
+          <Form.Item label='key' name='key' required>
             <Input />
           </Form.Item>
-          <Form.Item label='content' name='srcText'>
+          <Form.Item label='content' name='content' required>
             <Input.TextArea />
+          </Form.Item>
+          <Form.Item label='translate' name='trans' initialValue={0}>
+            <Select
+              options={[
+                { label: "中文-en", value: 0 },
+                { label: "en-中文", value: 1 }
+              ]}
+            />
           </Form.Item>
         </Form>
       </Modal>
-    </Wrap>
+    </div>
   );
 }

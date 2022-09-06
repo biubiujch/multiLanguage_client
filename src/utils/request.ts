@@ -9,12 +9,12 @@ export const request = axios.create({
 
 request.interceptors.response.use(
   function (response) {
-    const { status } = response;
+    const { status, data } = response;
     if (status === 201 || status === 202) {
       message.error("username or password error");
       return Promise.reject();
     }
-    return response.data;
+    return data;
   },
   function (error) {
     message.error("nextwork error");
@@ -45,6 +45,10 @@ export const apis: Record<string, AxiosRequestConfig<any>> = {
   },
   addText: {
     url: "translate/add",
+    method: "post"
+  },
+  addDstText: {
+    url: "translate/addDst",
     method: "post"
   },
   getAllText: {
