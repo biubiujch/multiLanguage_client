@@ -1,4 +1,4 @@
-import { Button, Input, message, Select, Space, Table } from "antd";
+import { Button, Form, Input, message, Modal, Popconfirm, Select, Space, Table } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -30,6 +30,7 @@ export default function ProjectDetail() {
   const dataSource = useMemo(() => {
     return Array.isArray(data) ? data : data.data || [];
   }, [data]);
+  const [addForm] = Form.useForm();
 
   const handleAddNew = async ({ src, dst, to, from }: { src: string; dst: string; to: string; from: string }) => {
     try {
@@ -87,6 +88,10 @@ export default function ProjectDetail() {
 
   const columns: ColumnsType<any> = [
     {
+      title: "key",
+      dataIndex: "key"
+    },
+    {
       title: "原始内容",
       dataIndex: "srcText"
     },
@@ -98,7 +103,10 @@ export default function ProjectDetail() {
       title: "操作",
       render: (record: Record<string, any>) => (
         <Space>
-          <TextBtn onClick={() => handleDelete(record)}>删除</TextBtn>
+          <Popconfirm title='delete?' onConfirm={() => handleDelete(record)} okText='del' cancelText='cancel'>
+            <TextBtn>删除</TextBtn>
+          </Popconfirm>
+
           <TextBtn>修改</TextBtn>
         </Space>
       )
@@ -107,32 +115,32 @@ export default function ProjectDetail() {
 
   return (
     <Wrap>
-      <Button type='primary' onClick={() => setShow(!show)}>
-        {show ? "cancel" : " create new"}
-      </Button>
-      <TranslateWrap show={show}>
-        <Space direction='horizontal'>
-          <Select
-            defaultValue={0}
-            onChange={(e) => setTranslate(e)}
-            options={[
-              { label: "中文-en", value: 0 },
-              { label: "en-中文", value: 1 }
-            ]}
-          />
-          <Button type='primary' onClick={handleTranslate}>
-            translate&amp;add
-          </Button>
-          <Button onClick={handleClear}>clear</Button>
-        </Space>
-        <div className='bottom'>
-          <Input.TextArea value={originText} onChange={handleInput} />
-          <Input.TextArea value={translateText} />
-        </div>
-      </TranslateWrap>
+      <Space>
+        <Button type='primary' onClick={() => setShow(!show)}>
+          create new
+        </Button>
+        <Select
+          defaultValue={0}
+          onChange={(e) => setTranslate(e)}
+          options={[
+            { label: "中文-en", value: 0 },
+            { label: "en-中文", value: 1 }
+          ]}
+        />
+      </Space>
       <TableWrap>
         <Table rowKey={(record) => record.id} dataSource={dataSource} columns={columns} />
       </TableWrap>
+      <Modal title='Add text' visible={show} onCancel={() => setShow(false)} onOk={() => {}}>
+        <Form form={addForm}>
+          <Form.Item label='key' name='key'>
+            <Input />
+          </Form.Item>
+          <Form.Item label='content' name='srcText'>
+            <Input.TextArea />
+          </Form.Item>
+        </Form>
+      </Modal>
     </Wrap>
   );
 }
