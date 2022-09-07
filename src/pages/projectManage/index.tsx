@@ -1,4 +1,4 @@
-import { Button, Form, Input, message, Modal, Space, Table, Popconfirm } from "antd";
+import { Button, Form, Input, message, Modal, Space, Table, Popconfirm, Select, Checkbox } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import { useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -22,14 +22,14 @@ function ProjectManage() {
 
   const handleSubmit = async () => {
     try {
-      const res = createForm.getFieldsValue();
+      const { projectName } = createForm.getFieldsValue();
       await request({
         ...apis.createProject,
         params: {
-          ...res,
+          projectName,
           administrator: user.name,
-          administratorID: user.id,
-        },
+          administratorID: user.id
+        }
       });
       message.success("create success");
       reFectch();
@@ -38,7 +38,7 @@ function ProjectManage() {
   };
   const handleUpdate = async (record: Record<string, any>) => {
     try {
-      const res = createForm.getFieldsValue();
+      const { projectName } = createForm.getFieldsValue();
       const { id } = project.current;
       if (!id) {
         message.error("update fail");
@@ -48,8 +48,8 @@ function ProjectManage() {
         ...apis.updateProject,
         params: {
           id,
-          ...res,
-        },
+          projectName
+        }
       });
       message.success("update success");
       reFectch();
@@ -70,7 +70,7 @@ function ProjectManage() {
     setIsCreate(false);
     setVisible(true);
     createForm.setFieldsValue({
-      projectName,
+      projectName
     });
   };
 
@@ -82,20 +82,20 @@ function ProjectManage() {
       key: "id",
       render: (record: Record<string, any>) => (
         <Space>
-          <Popconfirm title="删除" okText="delete" cancelText="cancel" onConfirm={() => handleDelete(record)}>
+          <Popconfirm title='删除' okText='delete' cancelText='cancel' onConfirm={() => handleDelete(record)}>
             <TextBtn>删除</TextBtn>
           </Popconfirm>
           <TextBtn onClick={() => handleEdit(record)}>编辑</TextBtn>
           <TextBtn onClick={() => navigate(`/dashbord/projectDetail?id=${record.id}`)}>进入项目</TextBtn>
         </Space>
-      ),
-    },
+      )
+    }
   ];
 
   return (
     <Wrap>
       <Button
-        type="primary"
+        type='primary'
         onClick={() => {
           createForm.resetFields();
           setVisible(true);
@@ -112,9 +112,15 @@ function ProjectManage() {
         onCancel={() => setVisible(false)}
         onOk={isCreate ? handleSubmit : handleUpdate}
       >
-        <Form form={createForm}>
-          <Form.Item label="项目名称" name="projectName">
+        <Form form={createForm} labelCol={{ span: 6 }}>
+          <Form.Item label='项目名称' name='projectName'>
             <Input />
+          </Form.Item>
+          <Form.Item label='源文案语言' name='srcLanguage' initialValue={"zh"}>
+            <Select options={[{ label: "zh" }, { label: "en" }, { label: "jp" }]} />
+          </Form.Item>
+          <Form.Item label='翻译文案语言' name='dstLanguage'>
+            <Checkbox.Group options={["zh", "en", "jp"]} />
           </Form.Item>
         </Form>
       </Modal>
