@@ -12,7 +12,7 @@ function ProjectManage() {
   const [visible, setVisible] = useState<boolean>(false);
   const [isCreate, setIsCreate] = useState<boolean>(true);
   const [createForm] = Form.useForm();
-  const { reFectch, data } = useRequestList(apis.getAllProject);
+  const { reFectch, data } = useRequestList(apis.getAllProject, {});
   const dataSource = useMemo(() => {
     return Array.isArray(data) ? data : data.data || [];
   }, [data]);
