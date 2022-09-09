@@ -19,6 +19,8 @@ interface EditableCellProps {
   children: React.ReactNode;
   dataIndex: keyof Item;
   record: Item;
+  form: FormInstance;
+  editKey?: string;
   translateCell?: boolean;
   handleSave: (record: Item) => void;
 }
@@ -41,12 +43,13 @@ export const EditableCell: React.FC<EditableCellProps> = ({
   dataIndex,
   record,
   translateCell,
-  handleSave,
+  editKey,
+  form,
   ...restProps
 }) => {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<InputRef>(null);
-  const form = useContext(EditableContext)!;
+  // const form = useContext(EditableContext);
 
   useEffect(() => {
     if (editing) {
@@ -54,21 +57,27 @@ export const EditableCell: React.FC<EditableCellProps> = ({
     }
   }, [editing]);
 
-  const toggleEdit = () => {
-    setEditing(!editing);
-    form.setFieldsValue({ [dataIndex]: record[dataIndex] });
-  };
-
-  const save = async () => {
-    try {
-      const values = await form.validateFields();
-
-      toggleEdit();
-      handleSave({ ...record, ...values });
-    } catch (errInfo) {
-      console.log("Save failed:", errInfo);
+  useEffect(() => {
+    if (editKey !== undefined) {
+      if (editKey === record?.id) {
+        setEditing(true);
+        form.setFieldsValue({ [dataIndex]: record[dataIndex] });
+      } else {
+        setEditing(false);
+        form.setFieldsValue({ [dataIndex]: record[dataIndex] });
+      }
     }
-  };
+  }, [editKey]);
+
+  // const save = async () => {
+  //   try {
+  //     const values = await form.validateFields();
+  //     setEditing(false);
+  //     form.setFieldsValue({ [dataIndex]: record[dataIndex] });
+  //   } catch (errInfo) {
+  //     console.log("Save failed:", errInfo);
+  //   }
+  // };
 
   let childNode = children;
 
@@ -82,18 +91,11 @@ export const EditableCell: React.FC<EditableCellProps> = ({
           </>
         )}
         <Form.Item style={{ margin: 0 }} name={dataIndex}>
-          {translateCell ? (
-            <Input.TextArea ref={inputRef} onPressEnter={save} />
-          ) : (
-            // <Input.TextArea ref={inputRef} onPressEnter={save} onBlur={save} />
-            <Input ref={inputRef} onPressEnter={save} onBlur={save} />
-          )}
+          {translateCell ? <Input.TextArea ref={inputRef} /> : <Input ref={inputRef} />}
         </Form.Item>
       </>
     ) : (
-      <div style={{ paddingRight: 24 }} onClick={toggleEdit}>
-        {children}
-      </div>
+      <div style={{ paddingRight: 24 }}>{children}</div>
     );
   }
 
@@ -102,7 +104,7 @@ export const EditableCell: React.FC<EditableCellProps> = ({
 
 export default {
   body: {
-    row: EditableRow,
-    cell: EditableCell
-  }
+    // row: EditableRow,
+    cell: EditableCell,
+  },
 };
