@@ -1,4 +1,4 @@
-import { InputRef, Select } from "antd";
+import { InputRef, Select, Space } from "antd";
 import { Form, Input } from "antd";
 import type { FormInstance } from "antd/es/form";
 import React, { useContext, useEffect, useRef, useState } from "react";
@@ -83,17 +83,23 @@ export const EditableCell: React.FC<EditableCellProps> = ({
 
   if (editable) {
     childNode = editing ? (
-      <>
+      <div>
         {translateCell && (
-          <>
+          <Space style={{ marginBottom: "10px" }}>
             <span>翻译成</span>
-            <Select defaultValue={"zh"} options={[{ label: "zh", value: "zh" }]} />
-          </>
+            <Select
+              defaultValue={"zh"}
+              options={[
+                { label: "zh", value: "zh" },
+                { label: "en", value: "en" }
+              ]}
+            />
+          </Space>
         )}
         <Form.Item style={{ margin: 0 }} name={dataIndex}>
           {translateCell ? <Input.TextArea ref={inputRef} /> : <Input ref={inputRef} />}
         </Form.Item>
-      </>
+      </div>
     ) : (
       <div style={{ paddingRight: 24 }}>{children}</div>
     );
@@ -105,6 +111,6 @@ export const EditableCell: React.FC<EditableCellProps> = ({
 export default {
   body: {
     // row: EditableRow,
-    cell: EditableCell,
-  },
+    cell: EditableCell
+  }
 };

@@ -10,7 +10,7 @@ import editCellComponents from "src/components/editCell";
 
 const translate = [
   { from: "zh", to: "en" },
-  { from: "en", to: "zh" },
+  { from: "en", to: "zh" }
 ];
 
 type EditableTableProps = Parameters<typeof Table>[0];
@@ -30,19 +30,17 @@ export default function ProjectDetail() {
   const [lang, setLang] = useState("zh");
   const [dataLength, setDataLength] = useState(0);
   const dataSource = useMemo(() => {
-    const res = Array.isArray(data) ? data : (data.data as any[]) || [];
-    const d: any[] = res.map((item: Record<string, any>) => ({
+    const d: any[] = data.map((item: Record<string, any>) => ({
       ...item,
-      target: (item.dst || []).filter((el: any) => el.to === lang)[0]?.text,
+      target: (item.dst || []).filter((el: any) => el.to === lang)[0]?.text
     }));
-
-    if (dataLength > res.length) {
+    if (dataLength > data.length) {
       d.push({
         ...d[0],
         id: "-1",
         key: "",
         target: "",
-        text: "",
+        text: ""
       });
     }
     return d;
@@ -50,8 +48,8 @@ export default function ProjectDetail() {
   const [tableForm] = Form.useForm();
 
   useEffect(() => {
-    if (Array.isArray(data) || Array.isArray(data.data)) {
-      setDataLength((Array.isArray(data) ? data : (data.data as any[]) || []).length);
+    if (data) {
+      setDataLength(data.length);
     }
   }, [data]);
 
@@ -68,8 +66,8 @@ export default function ProjectDetail() {
       await request({
         ...apis.deleteText,
         params: {
-          id,
-        },
+          id
+        }
       });
       // reFectch();
     } catch (e) {}
@@ -78,11 +76,12 @@ export default function ProjectDetail() {
   const handleSave = async (record: Record<string, any>) => {
     setEditKey("");
     const res = await tableForm.getFieldsValue();
+    reFectch();
     console.log({ ...record, ...res });
   };
   const handleCancel = (record: Record<string, any>) => {
     setEditKey("");
-    setDataLength(dataLength - 1);
+    setDataLength(data.length);
   };
   const handleCreate = () => {
     setEditKey("-1");
@@ -94,19 +93,19 @@ export default function ProjectDetail() {
       title: "key",
       dataIndex: "key",
       width: "30%",
-      editable: true,
+      editable: true
     },
     {
       title: "源文案",
       dataIndex: "text",
       width: "30%",
-      editable: true,
+      editable: true
     },
     {
       title: "翻译文案",
       dataIndex: "target",
       translateCell: true,
-      editable: true,
+      editable: true
     },
     {
       title: "操作",
@@ -120,7 +119,7 @@ export default function ProjectDetail() {
             </>
           ) : (
             <>
-              <Popconfirm title="delete?" onConfirm={() => handleDelete(record)} okText="del" cancelText="cancel">
+              <Popconfirm title='delete?' onConfirm={() => handleDelete(record)} okText='del' cancelText='cancel'>
                 <TextBtn>delete</TextBtn>
               </Popconfirm>
               <TextBtn>update</TextBtn>
@@ -128,8 +127,8 @@ export default function ProjectDetail() {
             </>
           )}
         </Space>
-      ),
-    },
+      )
+    }
   ];
 
   const columns = defaultColumns.map((col) => {
@@ -145,15 +144,15 @@ export default function ProjectDetail() {
         dataIndex: col.dataIndex,
         title: col.title,
         form: tableForm,
-        editKey,
-      }),
+        editKey
+      })
     };
   });
 
   return (
     <div>
       <Space>
-        <Button type="primary" disabled={!!editKey} onClick={handleCreate}>
+        <Button type='primary' disabled={!!editKey} onClick={handleCreate}>
           create new
         </Button>
       </Space>

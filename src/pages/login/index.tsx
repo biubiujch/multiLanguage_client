@@ -30,7 +30,6 @@ function Login() {
   };
 
   useEffect(() => {
-    console.log(islogin);
     if (loginStatus || islogin) navigate("/dashbord", { replace: true });
   }, [loginStatus, islogin]);
 
