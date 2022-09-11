@@ -10,7 +10,7 @@ import editCellComponents from "src/components/editCell";
 
 const translate = [
   { from: "zh", to: "en" },
-  { from: "en", to: "zh" }
+  { from: "en", to: "zh" },
 ];
 
 type EditableTableProps = Parameters<typeof Table>[0];
@@ -27,20 +27,21 @@ export default function ProjectDetail() {
   const projectID = useMemo(() => params.get("id") || null, [params]);
   const { reFectch, data } = useRequestList(apis.getAllText, { projectID });
   const [editKey, setEditKey] = useState("");
-  const [lang, setLang] = useState("zh");
+  const [lang, setLang] = useState("en");
   const [dataLength, setDataLength] = useState(0);
+  const [dstList, setDstList] = useState<{ text: string; to: string }[]>([]);
   const dataSource = useMemo(() => {
     const d: any[] = data.map((item: Record<string, any>) => ({
       ...item,
-      target: (item.dst || []).filter((el: any) => el.to === lang)[0]?.text
+      target: (item.dst || []).filter((el: any) => el.to === lang)[0]?.text,
     }));
     if (dataLength > data.length) {
       d.push({
-        ...d[0],
+        ...(d[0] || {}),
         id: "-1",
         key: "",
         target: "",
-        text: ""
+        text: "",
       });
     }
     return d;
@@ -53,10 +54,20 @@ export default function ProjectDetail() {
     }
   }, [data]);
 
-  const handleTranslate = async ({ q, to, from, srcID }: { q: string; to: string; from: string; srcID: string }) => {
-    const res = await translateAPI({ q, to, from });
-    if (res) {
-      const { trans_result } = res;
+  const handleTranslate = async () => {
+    const q = tableForm.getFieldValue("text");
+    if (q) {
+      const dsts = [];
+      const res = await translateAPI({ q, to: "en", from: "zh" });
+      if (res) {
+        const { trans_result } = res;
+        tableForm.setFieldValue("target", trans_result[0]?.dst);
+        dsts.push({
+          to: "en",
+          text: trans_result[0]?.dst,
+        });
+      }
+      setDstList(dsts);
     }
   };
 
@@ -66,18 +77,41 @@ export default function ProjectDetail() {
       await request({
         ...apis.deleteText,
         params: {
-          id
-        }
+          id,
+        },
       });
       // reFectch();
     } catch (e) {}
   };
 
   const handleSave = async (record: Record<string, any>) => {
-    setEditKey("");
-    const res = await tableForm.getFieldsValue();
-    reFectch();
-    console.log({ ...record, ...res });
+    try {
+      setEditKey("");
+      const value = await tableForm.getFieldsValue();
+      if (Object.values(value).filter((i) => !i).length) {
+        message.warning("exsit empty text");
+        setDataLength(data.length);
+        return;
+      }
+      if (record.id === "-1") {
+        const { key, text } = value;
+        const res = await request({
+          ...apis.createText,
+          data: {
+            key,
+            text,
+            dst: dstList,
+            from: "zh",
+            projectID,
+          },
+        });
+      } else {
+      }
+      reFectch();
+    } catch (e) {
+      setEditKey("");
+      setDataLength(data.length);
+    }
   };
   const handleCancel = (record: Record<string, any>) => {
     setEditKey("");
@@ -93,19 +127,19 @@ export default function ProjectDetail() {
       title: "key",
       dataIndex: "key",
       width: "30%",
-      editable: true
+      editable: true,
     },
     {
       title: "源文案",
       dataIndex: "text",
       width: "30%",
-      editable: true
+      editable: true,
     },
     {
       title: "翻译文案",
       dataIndex: "target",
       translateCell: true,
-      editable: true
+      editable: true,
     },
     {
       title: "操作",
@@ -119,7 +153,7 @@ export default function ProjectDetail() {
             </>
           ) : (
             <>
-              <Popconfirm title='delete?' onConfirm={() => handleDelete(record)} okText='del' cancelText='cancel'>
+              <Popconfirm title="delete?" onConfirm={() => handleDelete(record)} okText="del" cancelText="cancel">
                 <TextBtn>delete</TextBtn>
               </Popconfirm>
               <TextBtn>update</TextBtn>
@@ -127,8 +161,8 @@ export default function ProjectDetail() {
             </>
           )}
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   const columns = defaultColumns.map((col) => {
@@ -144,15 +178,16 @@ export default function ProjectDetail() {
         dataIndex: col.dataIndex,
         title: col.title,
         form: tableForm,
-        editKey
-      })
+        handleTranslate: col.dataIndex === "text" ? handleTranslate : undefined,
+        editKey,
+      }),
     };
   });
 
   return (
     <div>
       <Space>
-        <Button type='primary' disabled={!!editKey} onClick={handleCreate}>
+        <Button type="primary" disabled={!!editKey} onClick={handleCreate}>
           create new
         </Button>
       </Space>

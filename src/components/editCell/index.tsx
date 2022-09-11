@@ -22,6 +22,7 @@ interface EditableCellProps {
   form: FormInstance;
   editKey?: string;
   translateCell?: boolean;
+  handleTranslate?: () => void;
   handleSave: (record: Item) => void;
 }
 
@@ -45,11 +46,12 @@ export const EditableCell: React.FC<EditableCellProps> = ({
   translateCell,
   editKey,
   form,
+  handleTranslate,
   ...restProps
 }) => {
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<InputRef>(null);
-  // const form = useContext(EditableContext);
+  // const form = useContext(EditableContext);\
 
   useEffect(() => {
     if (editing) {
@@ -79,6 +81,10 @@ export const EditableCell: React.FC<EditableCellProps> = ({
   //   }
   // };
 
+  const handleBlur = () => {
+    handleTranslate && handleTranslate();
+  };
+
   let childNode = children;
 
   if (editable) {
@@ -88,16 +94,16 @@ export const EditableCell: React.FC<EditableCellProps> = ({
           <Space style={{ marginBottom: "10px" }}>
             <span>翻译成</span>
             <Select
-              defaultValue={"zh"}
+              defaultValue={"en"}
               options={[
+                { label: "en", value: "en" },
                 { label: "zh", value: "zh" },
-                { label: "en", value: "en" }
               ]}
             />
           </Space>
         )}
         <Form.Item style={{ margin: 0 }} name={dataIndex}>
-          {translateCell ? <Input.TextArea ref={inputRef} /> : <Input ref={inputRef} />}
+          {translateCell ? <Input.TextArea ref={inputRef} /> : <Input ref={inputRef} onBlur={handleBlur} />}
         </Form.Item>
       </div>
     ) : (
@@ -111,6 +117,6 @@ export const EditableCell: React.FC<EditableCellProps> = ({
 export default {
   body: {
     // row: EditableRow,
-    cell: EditableCell
-  }
+    cell: EditableCell,
+  },
 };
