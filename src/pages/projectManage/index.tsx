@@ -19,19 +19,24 @@ function ProjectManage() {
 
   const handleSubmit = async () => {
     try {
-      const { projectName } = createForm.getFieldsValue();
+      const value = createForm.getFieldsValue();
+      const dstLang = Array.from(new Set([value.srcLang, ...value.dstLang])).join();
+      console.log(user);
       await request({
         ...apis.createProject,
         params: {
-          projectName,
-          administrator: user.name,
-          administratorID: user.id
-        }
+          ...value,
+          dstLang,
+          administrator: user.username,
+          administratorID: user.id,
+        },
       });
       message.success("create success");
       reFectch();
       setVisible(false);
-    } catch (e) {}
+    } catch (e) {
+      console.log(e);
+    }
   };
   const handleUpdate = async (record: Record<string, any>) => {
     try {
@@ -45,8 +50,8 @@ function ProjectManage() {
         ...apis.updateProject,
         params: {
           id,
-          projectName
-        }
+          projectName,
+        },
       });
       message.success("update success");
       reFectch();
@@ -67,7 +72,7 @@ function ProjectManage() {
     setIsCreate(false);
     setVisible(true);
     createForm.setFieldsValue({
-      projectName
+      projectName,
     });
   };
 
@@ -79,20 +84,20 @@ function ProjectManage() {
       key: "id",
       render: (record: Record<string, any>) => (
         <Space>
-          <Popconfirm title='删除' okText='delete' cancelText='cancel' onConfirm={() => handleDelete(record)}>
+          <Popconfirm title="删除" okText="delete" cancelText="cancel" onConfirm={() => handleDelete(record)}>
             <TextBtn>删除</TextBtn>
           </Popconfirm>
           <TextBtn onClick={() => handleEdit(record)}>编辑</TextBtn>
           <TextBtn onClick={() => navigate(`/dashbord/projectDetail?id=${record.id}`)}>进入项目</TextBtn>
         </Space>
-      )
-    }
+      ),
+    },
   ];
 
   return (
     <Wrap>
       <Button
-        type='primary'
+        type="primary"
         onClick={() => {
           createForm.resetFields();
           setVisible(true);
@@ -110,13 +115,13 @@ function ProjectManage() {
         onOk={isCreate ? handleSubmit : handleUpdate}
       >
         <Form form={createForm} labelCol={{ span: 6 }}>
-          <Form.Item label='项目名称' name='projectName'>
+          <Form.Item label="项目名称" name="projectName">
             <Input />
           </Form.Item>
-          <Form.Item label='源文案语言' name='srcLanguage' initialValue={"zh"}>
+          <Form.Item label="源文案语言" name="srcLang" initialValue={"zh"}>
             <Select options={[{ label: "zh" }, { label: "en" }, { label: "jp" }]} />
           </Form.Item>
-          <Form.Item label='翻译文案语言' name='dstLanguage'>
+          <Form.Item label="翻译文案语言" name="dstLang">
             <Checkbox.Group options={["zh", "en", "jp"]} />
           </Form.Item>
         </Form>
