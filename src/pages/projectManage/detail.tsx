@@ -7,6 +7,7 @@ import { apis, request } from "src/utils/request";
 import { translateAPI } from "src/utils/translate";
 import { TableWrap, TextBtn } from "./index.styled";
 import editCellComponents from "src/components/editCell";
+import { timeOut } from "src/utils";
 
 const translate = [
   { from: "zh", to: "en" },
@@ -63,23 +64,34 @@ export default function ProjectDetail() {
     }
   }, [projectID]);
   const handleTranslate = async () => {
-    const q = tableForm.getFieldValue("text");
-    if (q) {
-      const dsts: { text: string; to: string }[] = [];
-      for await (let to of lang) {
-        const res = await translateAPI({ q, to, from: projectDetail.srcLang || "zh" });
-        if (res) {
-          const { trans_result } = res;
-          trans_result &&
-            dsts.push({
-              to,
-              text: trans_result[0]?.dst,
-            });
+    try {
+      const q = tableForm.getFieldValue("text");
+      if (q) {
+        const dsts: { text: string; to: string }[] = [];
+        for await (let to of lang) {
+          const res = await translate(q, to, projectDetail.srcLang || "zh");
+          await timeOut(500);
+          res && dsts.push(res);
         }
+        tableForm.setFieldValue("target", dsts[0]?.text || "");
+        setDstList(dsts);
       }
-      tableForm.setFieldValue("target", dsts[0].text || "");
-      setDstList(dsts);
+    } catch (e) {
+      console.error(e);
     }
+  };
+  const translate = async (q: string, to: string, from: string) => {
+    const res = await translateAPI({ q, to, from });
+    if (res) {
+      const { trans_result } = res;
+      return trans_result
+        ? {
+            to: lang[0],
+            text: trans_result[0]?.dst,
+          }
+        : null;
+    }
+    return null;
   };
   const handleDelete = async (record: Record<string, any>) => {
     try {
@@ -137,7 +149,6 @@ export default function ProjectDetail() {
       setDataLength(data.length);
     }
   }, [data]);
-
   useEffect(() => {
     projectID && getProjectDetail();
   }, [projectID, getProjectDetail]);
