@@ -17,11 +17,15 @@ function ProjectManage() {
   const user = useSelector((state: RootState) => state.administrator.user);
   const navigate = useNavigate();
 
+  const handleCreate = () => {
+    createForm.resetFields();
+    setIsCreate(true);
+    setVisible(true);
+  };
   const handleSubmit = async () => {
     try {
       const value = createForm.getFieldsValue();
       const dstLang = Array.from(new Set([value.srcLang, ...value.dstLang])).join();
-      console.log(user);
       await request({
         ...apis.createProject,
         params: {
@@ -40,7 +44,8 @@ function ProjectManage() {
   };
   const handleUpdate = async (record: Record<string, any>) => {
     try {
-      const { projectName } = createForm.getFieldsValue();
+      const value = createForm.getFieldsValue();
+      const dstLang = Array.from(new Set([value.srcLang, ...value.dstLang])).join();
       const { id } = project.current;
       if (!id) {
         message.error("update fail");
@@ -50,7 +55,8 @@ function ProjectManage() {
         ...apis.updateProject,
         params: {
           id,
-          projectName,
+          ...value,
+          dstLang,
         },
       });
       message.success("update success");
@@ -68,11 +74,12 @@ function ProjectManage() {
   };
   const handleEdit = (record: Record<string, any>) => {
     project.current = record;
-    const { projectName } = record;
+    const { projectName, dstLang } = record;
     setIsCreate(false);
     setVisible(true);
     createForm.setFieldsValue({
       projectName,
+      dstLang: (dstLang as string).split(","),
     });
   };
 
@@ -87,7 +94,7 @@ function ProjectManage() {
           <Popconfirm title="删除" okText="delete" cancelText="cancel" onConfirm={() => handleDelete(record)}>
             <TextBtn>删除</TextBtn>
           </Popconfirm>
-          <TextBtn onClick={() => handleEdit(record)}>编辑</TextBtn>
+          {record.state !== 1 && <TextBtn onClick={() => handleEdit(record)}>编辑</TextBtn>}
           <TextBtn onClick={() => navigate(`/dashbord/projectDetail?id=${record.id}`)}>进入项目</TextBtn>
         </Space>
       ),
@@ -96,13 +103,7 @@ function ProjectManage() {
 
   return (
     <Wrap>
-      <Button
-        type="primary"
-        onClick={() => {
-          createForm.resetFields();
-          setVisible(true);
-        }}
-      >
+      <Button type="primary" onClick={handleCreate}>
         create project
       </Button>
       <TableWrap>

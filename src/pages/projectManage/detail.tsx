@@ -1,6 +1,6 @@
 import { Button, Form, Input, message, Modal, Popconfirm, Row, Select, Space, Table } from "antd";
 import { ColumnsType } from "antd/lib/table";
-import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useRequestList } from "src/hooks/useRequestList";
 import { apis, request } from "src/utils/request";
@@ -27,13 +27,14 @@ export default function ProjectDetail() {
   const projectID = useMemo(() => params.get("id") || null, [params]);
   const { reFectch, data } = useRequestList(apis.getAllText, { projectID });
   const [editKey, setEditKey] = useState("");
-  const [lang, setLang] = useState("en");
+  const [lang, setLang] = useState<string[]>([]);
+  const [projectDetail, setProjectDetail] = useState<Record<string, any>>({});
   const [dataLength, setDataLength] = useState(0);
   const [dstList, setDstList] = useState<{ text: string; to: string }[]>([]);
   const dataSource = useMemo(() => {
     const d: any[] = data.map((item: Record<string, any>) => ({
       ...item,
-      target: (item.dst || []).filter((el: any) => el.to === lang)[0]?.text,
+      target: (item.dst || []).filter((el: any) => el.to === (lang[0] || "en"))[0]?.text,
     }));
     if (dataLength > data.length) {
       d.push({
@@ -48,29 +49,38 @@ export default function ProjectDetail() {
   }, [data.length, lang, dataLength]);
   const [tableForm] = Form.useForm();
 
-  useEffect(() => {
-    if (data) {
-      setDataLength(data.length);
+  const getProjectDetail = useCallback(async () => {
+    try {
+      const data = await request({ ...apis.detailProject, params: { id: projectID } });
+      const { dstLang, srcLang } = data as any;
+      if (dstLang && srcLang) {
+        setProjectDetail(data);
+        const langs = (dstLang as string).split(",").filter((l) => l !== srcLang);
+        setLang(langs);
+      }
+    } catch (e) {
+      console.error(e);
     }
-  }, [data]);
-
+  }, [projectID]);
   const handleTranslate = async () => {
     const q = tableForm.getFieldValue("text");
     if (q) {
-      const dsts = [];
-      const res = await translateAPI({ q, to: "en", from: "zh" });
-      if (res) {
-        const { trans_result } = res;
-        tableForm.setFieldValue("target", trans_result[0]?.dst);
-        dsts.push({
-          to: "en",
-          text: trans_result[0]?.dst,
-        });
+      const dsts: { text: string; to: string }[] = [];
+      for await (let to of lang) {
+        const res = await translateAPI({ q, to, from: projectDetail.srcLang || "zh" });
+        if (res) {
+          const { trans_result } = res;
+          trans_result &&
+            dsts.push({
+              to,
+              text: trans_result[0]?.dst,
+            });
+        }
       }
+      tableForm.setFieldValue("target", dsts[0].text || "");
       setDstList(dsts);
     }
   };
-
   const handleDelete = async (record: Record<string, any>) => {
     try {
       const { id } = record;
@@ -80,10 +90,9 @@ export default function ProjectDetail() {
           id,
         },
       });
-      // reFectch();
+      reFectch();
     } catch (e) {}
   };
-
   const handleSave = async (record: Record<string, any>) => {
     try {
       setEditKey("");
@@ -101,11 +110,12 @@ export default function ProjectDetail() {
             key,
             text,
             dst: dstList,
-            from: "zh",
+            from: projectDetail.srcLang || "zh",
             projectID,
           },
         });
       } else {
+        // 更新
       }
       reFectch();
     } catch (e) {
@@ -121,6 +131,16 @@ export default function ProjectDetail() {
     setEditKey("-1");
     setDataLength(dataLength + 1);
   };
+
+  useEffect(() => {
+    if (data) {
+      setDataLength(data.length);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    projectID && getProjectDetail();
+  }, [projectID, getProjectDetail]);
 
   const defaultColumns: (ColumnTypes[number] & { editable?: boolean; dataIndex: string; translateCell?: boolean })[] = [
     {
@@ -177,6 +197,7 @@ export default function ProjectDetail() {
         translateCell: col.translateCell,
         dataIndex: col.dataIndex,
         title: col.title,
+        langsOptions: lang.map((l) => ({ value: l, label: l })),
         form: tableForm,
         handleTranslate: col.dataIndex === "text" ? handleTranslate : undefined,
         editKey,

@@ -22,6 +22,7 @@ interface EditableCellProps {
   form: FormInstance;
   editKey?: string;
   translateCell?: boolean;
+  langsOptions: { label: string; value: string }[];
   handleTranslate?: () => void;
   handleSave: (record: Item) => void;
 }
@@ -46,6 +47,7 @@ export const EditableCell: React.FC<EditableCellProps> = ({
   translateCell,
   editKey,
   form,
+  langsOptions,
   handleTranslate,
   ...restProps
 }) => {
@@ -93,13 +95,7 @@ export const EditableCell: React.FC<EditableCellProps> = ({
         {translateCell && (
           <Space style={{ marginBottom: "10px" }}>
             <span>翻译成</span>
-            <Select
-              defaultValue={"en"}
-              options={[
-                { label: "en", value: "en" },
-                { label: "zh", value: "zh" },
-              ]}
-            />
+            <Select defaultValue={"en"} options={langsOptions} />
           </Space>
         )}
         <Form.Item style={{ margin: 0 }} name={dataIndex}>

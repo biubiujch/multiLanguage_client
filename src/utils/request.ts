@@ -39,24 +39,28 @@ export const apis: Record<string, AxiosRequestConfig<any>> = {
     url: "project/update",
     method: "post",
   },
+  detailProject: {
+    url: "project/detail",
+    method: "get",
+  },
   login: {
     url: "administrator/login",
     method: "post",
   },
   createText: {
     url: "translate/create",
-    method: "post"
+    method: "post",
   },
   getAllText: {
     url: "translate/getAll",
-    method: "get"
+    method: "get",
   },
   deleteText: {
     url: "translate/delete",
-    method: "post"
+    method: "post",
   },
   updateText: {
     url: "translate/update",
-    method: "post"
-  }
+    method: "post",
+  },
 };
