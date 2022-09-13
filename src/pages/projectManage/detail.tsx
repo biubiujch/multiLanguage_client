@@ -1,4 +1,4 @@
-import { Button, Form, Input, message, Modal, Popconfirm, Row, Select, Space, Table } from "antd";
+import { Button, Form, Input, message, Modal, Popconfirm, Row, Select, Space, Spin, Table } from "antd";
 import { ColumnsType } from "antd/lib/table";
 import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
@@ -11,7 +11,7 @@ import { timeOut } from "src/utils";
 
 const translate = [
   { from: "zh", to: "en" },
-  { from: "en", to: "zh" },
+  { from: "en", to: "zh" }
 ];
 
 type EditableTableProps = Parameters<typeof Table>[0];
@@ -28,14 +28,14 @@ export default function ProjectDetail() {
   const projectID = useMemo(() => params.get("id") || null, [params]);
   const { reFectch, data } = useRequestList(apis.getAllText, { projectID });
   const [editKey, setEditKey] = useState("");
-  const [lang, setLang] = useState<string[]>([]);
+  const [lang, setLang] = useState<string>("");
   const [projectDetail, setProjectDetail] = useState<Record<string, any>>({});
   const [dataLength, setDataLength] = useState(0);
-  const [dstList, setDstList] = useState<{ text: string; to: string }[]>([]);
+  const [saving, setSaving] = useState(false);
   const dataSource = useMemo(() => {
     const d: any[] = data.map((item: Record<string, any>) => ({
       ...item,
-      target: (item.dst || []).filter((el: any) => el.to === (lang[0] || "en"))[0]?.text,
+      target: (item.dst || []).filter((el: any) => el.to === (lang || "en"))[0]?.text
     }));
     if (dataLength > data.length) {
       d.push({
@@ -43,11 +43,11 @@ export default function ProjectDetail() {
         id: "-1",
         key: "",
         target: "",
-        text: "",
+        text: ""
       });
     }
     return d;
-  }, [data.length, lang, dataLength]);
+  }, [data, lang, dataLength]);
   const [tableForm] = Form.useForm();
 
   const getProjectDetail = useCallback(async () => {
@@ -57,24 +57,18 @@ export default function ProjectDetail() {
       if (dstLang && srcLang) {
         setProjectDetail(data);
         const langs = (dstLang as string).split(",").filter((l) => l !== srcLang);
-        setLang(langs);
+        setLang(langs[0] || "");
       }
     } catch (e) {
       console.error(e);
     }
   }, [projectID]);
-  const handleTranslate = async () => {
+  const handleTranslate = async (language?: string) => {
     try {
       const q = tableForm.getFieldValue("text");
       if (q) {
-        const dsts: { text: string; to: string }[] = [];
-        for await (let to of lang) {
-          const res = await translate(q, to, projectDetail.srcLang || "zh");
-          await timeOut(500);
-          res && dsts.push(res);
-        }
-        tableForm.setFieldValue("target", dsts[0]?.text || "");
-        setDstList(dsts);
+        const res = await translate(q, language || lang, projectDetail.srcLang || "zh");
+        tableForm.setFieldValue("target", res?.text || "");
       }
     } catch (e) {
       console.error(e);
@@ -86,8 +80,8 @@ export default function ProjectDetail() {
       const { trans_result } = res;
       return trans_result
         ? {
-            to: lang[0],
-            text: trans_result[0]?.dst,
+            to,
+            text: trans_result[0]?.dst as string
           }
         : null;
     }
@@ -99,40 +93,70 @@ export default function ProjectDetail() {
       await request({
         ...apis.deleteText,
         params: {
-          id,
-        },
+          id
+        }
       });
       reFectch();
     } catch (e) {}
   };
   const handleSave = async (record: Record<string, any>) => {
     try {
+      setSaving(true);
       setEditKey("");
       const value = await tableForm.getFieldsValue();
+      const from = projectDetail.srcLang || "zh";
       if (Object.values(value).filter((i) => !i).length) {
         message.warning("exsit empty text");
         setDataLength(data.length);
         return;
       }
+      const { key, text } = value;
       if (record.id === "-1") {
-        const { key, text } = value;
+        const dst: { text: string; to: string }[] = [];
+        const langs = projectDetail.dstLang.split(",");
+        for await (let to of langs) {
+          const res = await translate(text, to, from);
+          await timeOut(800);
+          res && dst.push(res);
+        }
         const res = await request({
           ...apis.createText,
           data: {
             key,
             text,
-            dst: dstList,
-            from: projectDetail.srcLang || "zh",
-            projectID,
-          },
+            dst,
+            from,
+            projectID
+          }
         });
       } else {
-        // 更新
+        const dst: { text: string; id: string }[] = [];
+        const { dst: dstList } = record;
+        for await (let item of dstList) {
+          const res = await translate(text, item.to, from);
+          await timeOut(800);
+          res &&
+            dst.push({
+              id: item.id,
+              text: res.text
+            });
+        }
+        console.log(dst);
+        await request({
+          ...apis.updateText,
+          data: {
+            id: record.id,
+            text,
+            dst
+          }
+        });
       }
       reFectch();
     } catch (e) {
       setEditKey("");
       setDataLength(data.length);
+    } finally {
+      setSaving(false);
     }
   };
   const handleCancel = (record: Record<string, any>) => {
@@ -142,6 +166,26 @@ export default function ProjectDetail() {
   const handleCreate = () => {
     setEditKey("-1");
     setDataLength(dataLength + 1);
+  };
+  const handleChangLang = (
+    value: string,
+    option:
+      | {
+          label: string;
+          value: string;
+        }
+      | {
+          label: string;
+          value: string;
+        }[],
+    record: any
+  ) => {
+    if (record.id !== "-1") {
+      const target = record.dst.filter(({ to }: any) => to === value);
+      tableForm.setFieldValue("target", target[0]?.text || "");
+    } else {
+      handleTranslate(value);
+    }
   };
 
   useEffect(() => {
@@ -158,19 +202,19 @@ export default function ProjectDetail() {
       title: "key",
       dataIndex: "key",
       width: "30%",
-      editable: true,
+      editable: true
     },
     {
       title: "源文案",
       dataIndex: "text",
       width: "30%",
-      editable: true,
+      editable: true
     },
     {
       title: "翻译文案",
       dataIndex: "target",
       translateCell: true,
-      editable: true,
+      editable: true
     },
     {
       title: "操作",
@@ -184,16 +228,15 @@ export default function ProjectDetail() {
             </>
           ) : (
             <>
-              <Popconfirm title="delete?" onConfirm={() => handleDelete(record)} okText="del" cancelText="cancel">
+              <Popconfirm title='delete?' onConfirm={() => handleDelete(record)} okText='del' cancelText='cancel'>
                 <TextBtn>delete</TextBtn>
               </Popconfirm>
-              <TextBtn>update</TextBtn>
               <TextBtn onClick={() => setEditKey(record?.id)}>edit</TextBtn>
             </>
           )}
         </Space>
-      ),
-    },
+      )
+    }
   ];
 
   const columns = defaultColumns.map((col) => {
@@ -208,31 +251,34 @@ export default function ProjectDetail() {
         translateCell: col.translateCell,
         dataIndex: col.dataIndex,
         title: col.title,
-        langsOptions: lang.map((l) => ({ value: l, label: l })),
+        langsOptions: projectDetail.dstLang?.split(",").map((l: string) => ({ value: l, label: l })) || [],
         form: tableForm,
+        changLang: handleChangLang,
         handleTranslate: col.dataIndex === "text" ? handleTranslate : undefined,
-        editKey,
-      }),
+        editKey
+      })
     };
   });
 
   return (
     <div>
-      <Space>
-        <Button type="primary" disabled={!!editKey} onClick={handleCreate}>
-          create new
-        </Button>
-      </Space>
-      <TableWrap>
-        <Form form={tableForm} component={false}>
-          <Table
-            components={editCellComponents}
-            rowKey={(record: Record<string, any>) => record.id}
-            dataSource={dataSource}
-            columns={columns as ColumnTypes}
-          />
-        </Form>
-      </TableWrap>
+      <Spin spinning={saving}>
+        <Space>
+          <Button type='primary' disabled={!!editKey} onClick={handleCreate}>
+            create new
+          </Button>
+        </Space>
+        <TableWrap>
+          <Form form={tableForm} component={false}>
+            <Table
+              components={editCellComponents}
+              rowKey={(record: Record<string, any>) => record.id}
+              dataSource={dataSource}
+              columns={columns as ColumnTypes}
+            />
+          </Form>
+        </TableWrap>
+      </Spin>
     </div>
   );
 }

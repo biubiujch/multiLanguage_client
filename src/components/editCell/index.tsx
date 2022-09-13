@@ -22,6 +22,19 @@ interface EditableCellProps {
   form: FormInstance;
   editKey?: string;
   translateCell?: boolean;
+  changLang?: (
+    value: string,
+    option:
+      | {
+          label: string;
+          value: string;
+        }
+      | {
+          label: string;
+          value: string;
+        }[],
+    record: any
+  ) => void;
   langsOptions: { label: string; value: string }[];
   handleTranslate?: () => void;
   handleSave: (record: Item) => void;
@@ -47,6 +60,7 @@ export const EditableCell: React.FC<EditableCellProps> = ({
   translateCell,
   editKey,
   form,
+  changLang,
   langsOptions,
   handleTranslate,
   ...restProps
@@ -87,6 +101,21 @@ export const EditableCell: React.FC<EditableCellProps> = ({
     handleTranslate && handleTranslate();
   };
 
+  const handlechange = (
+    value: string,
+    option:
+      | {
+          label: string;
+          value: string;
+        }
+      | {
+          label: string;
+          value: string;
+        }[]
+  ) => {
+    changLang && changLang(value, option, record);
+  };
+
   let childNode = children;
 
   if (editable) {
@@ -95,7 +124,7 @@ export const EditableCell: React.FC<EditableCellProps> = ({
         {translateCell && (
           <Space style={{ marginBottom: "10px" }}>
             <span>翻译成</span>
-            <Select defaultValue={"en"} options={langsOptions} />
+            <Select defaultValue={"en"} options={langsOptions} onChange={handlechange} />
           </Space>
         )}
         <Form.Item style={{ margin: 0 }} name={dataIndex}>
@@ -113,6 +142,6 @@ export const EditableCell: React.FC<EditableCellProps> = ({
 export default {
   body: {
     // row: EditableRow,
-    cell: EditableCell,
-  },
+    cell: EditableCell
+  }
 };
