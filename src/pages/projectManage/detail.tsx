@@ -103,14 +103,13 @@ export default function ProjectDetail() {
     try {
       setSaving(true);
       setEditKey("");
-      const value = await tableForm.getFieldsValue();
+      const { key, text } = await tableForm.getFieldsValue();
       const from = projectDetail.srcLang || "zh";
-      if (Object.values(value).filter((i) => !i).length) {
-        message.warning("exsit empty text");
+      if (!key || !text) {
+        message.warning("exsit empty text or key");
         setDataLength(data.length);
         return;
       }
-      const { key, text } = value;
       if (record.id === "-1") {
         const dst: { text: string; to: string }[] = [];
         const langs = projectDetail.dstLang.split(",");
@@ -186,6 +185,26 @@ export default function ProjectDetail() {
     } else {
       handleTranslate(value);
     }
+  };
+  const handleDeployment = async () => {
+    const res = await request({ ...apis.deployment, params: { projectID } });
+    Modal.info({
+      title: "url link",
+      content: <Input readOnly value={res as any} />,
+      okText: "copy",
+      onOk: () => {
+        const input = document.createElement("input");
+        document.body.appendChild(input);
+        input.setAttribute("value", res as any);
+        input.select();
+        if (document.execCommand("copy")) {
+          document.execCommand("copy");
+        }
+        document.body.removeChild(input);
+
+        return Promise.resolve();
+      }
+    });
   };
 
   useEffect(() => {
@@ -266,6 +285,9 @@ export default function ProjectDetail() {
         <Space>
           <Button type='primary' disabled={!!editKey} onClick={handleCreate}>
             create new
+          </Button>
+          <Button type='primary' disabled={!dataSource.length} onClick={handleDeployment}>
+            deployment
           </Button>
         </Space>
         <TableWrap>
