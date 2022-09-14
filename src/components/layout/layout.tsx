@@ -29,28 +29,28 @@ function PageLayout() {
     <Wrap>
       <Layout>
         <Sider trigger={null} collapsible collapsed={collapsed}>
-          <div className='logo' />
+          <div className="logo" />
           <Menu
-            theme='dark'
-            mode='inline'
+            theme="dark"
+            mode="inline"
             defaultSelectedKeys={[menuList[0].key]}
             items={menuList}
             onClick={({ key }) => navigate(`/dashbord${key}`, { replace: true })}
           />
         </Sider>
-        <Layout className='site-layout'>
-          <Header className='site-layout-background' style={{ padding: 0 }}>
+        <Layout className="site-layout">
+          <Header className="site-layout-background" style={{ padding: 0 }}>
             {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
               className: "trigger",
-              onClick: () => setCollapsed(!collapsed)
+              onClick: () => setCollapsed(!collapsed),
             })}
           </Header>
           <Content
-            className='site-layout-background'
+            className="site-layout-background"
             style={{
               margin: "24px 16px",
               padding: 24,
-              minHeight: 280
+              minHeight: 280,
             }}
           >
             <Outlet />
