@@ -89,4 +89,8 @@ export const apis: Record<string, AxiosRequestConfig<any>> = {
     url: "translate/update",
     method: "post",
   },
+  deployment: {
+    url: "translate/deployment",
+    method: "get"
+  }
 };
