@@ -25,4 +25,12 @@ export const Wrap = styled.div`
   .site-layout-background {
     background: #fff;
   }
+  .flex-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .profile-photo {
+    margin: 0 24px;
+  }
 `;

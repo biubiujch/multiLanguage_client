@@ -9,21 +9,25 @@ export const request = axios.create({
   baseURL,
 });
 
+let { user } = JSON.parse(sessionStorage.getItem("administrator") || "null") || { user: {} }
+
 store.subscribe(() => {
   if (store.getState().administrator.isLogin) {
-    request.interceptors.request.use(
-      (req) => {
-        req.headers = {
-          authorization: `Bearer ${store.getState().administrator.user?.token}`,
-        };
-        return Promise.resolve(req);
-      },
-      (err) => {
-        return Promise.reject(err);
-      }
-    );
+    user.token = store.getState().administrator.user?.token
   }
 });
+
+request.interceptors.request.use(
+  (req) => {
+    req.headers = {
+      authorization: `Bearer ${user.token}`,
+    };
+    return Promise.resolve(req);
+  },
+  (err) => {
+    return Promise.reject(err);
+  }
+);
 
 request.interceptors.response.use(
   function (response) {
@@ -71,6 +75,10 @@ export const apis: Record<string, AxiosRequestConfig<any>> = {
   },
   regist: {
     url: "administrator/regist",
+    method: "post",
+  },
+  changepsw: {
+    url: "administrator/changepsw",
     method: "post",
   },
   createText: {
