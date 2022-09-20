@@ -123,7 +123,7 @@ function ProjectManage() {
             <Select options={[{ label: "zh" }, { label: "en" }, { label: "jp" }, { label: "fra" }]} />
           </Form.Item>
           <Form.Item label="翻译文案语言" name="dstLang">
-            <Checkbox.Group options={["zh", "en", "jp", "fra"]} />
+            <Checkbox.Group options={[ "en", "jp", "fra"]} />
           </Form.Item>
         </Form>
       </Modal>

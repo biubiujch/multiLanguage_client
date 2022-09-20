@@ -272,6 +272,7 @@ export default function ProjectDetail() {
         title: col.title,
         langsOptions: projectDetail.dstLang?.split(",").map((l: string) => ({ value: l, label: l })) || [],
         form: tableForm,
+        disabled: record.id !== "-1" && col.dataIndex === "key",
         changLang: handleChangLang,
         handleTranslate: col.dataIndex === "text" ? handleTranslate : undefined,
         editKey

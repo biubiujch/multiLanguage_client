@@ -21,6 +21,7 @@ interface EditableCellProps {
   record: Item;
   form: FormInstance;
   editKey?: string;
+  disabled?: boolean;
   translateCell?: boolean;
   changLang?: (
     value: string,
@@ -63,6 +64,7 @@ export const EditableCell: React.FC<EditableCellProps> = ({
   changLang,
   langsOptions,
   handleTranslate,
+  disabled,
   ...restProps
 }) => {
   const [editing, setEditing] = useState(false);
@@ -128,7 +130,11 @@ export const EditableCell: React.FC<EditableCellProps> = ({
           </Space>
         )}
         <Form.Item style={{ margin: 0 }} name={dataIndex}>
-          {translateCell ? <Input.TextArea ref={inputRef} /> : <Input ref={inputRef} onBlur={handleBlur} />}
+          {translateCell ? (
+            <Input.TextArea ref={inputRef} />
+          ) : (
+            <Input ref={inputRef} onBlur={handleBlur} disabled={disabled} />
+          )}
         </Form.Item>
       </div>
     ) : (
